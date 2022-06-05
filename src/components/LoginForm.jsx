@@ -2,26 +2,50 @@ import React from "react";
 import Form from "./FormBuilder";
 
 const FORM_CONFIG = {
-  form: {
-    onSubmit: () => {
-      console.log("submit");
-    },
-    wrapperClass: ""
+  onSubmit: () => {
+    console.log("submit");
+  },
+  wrapperClass: "dd",
+  title: { text: "Form", class: "ll" },
+  submitBtn: {
+    id: "submit-form-btn-id",
+    content: "Submit",
+    class: "sub"
   },
   fields: {
     firstName: {
       type: "text",
       id: "firstName",
-      name: "firstName",
       value: "",
       label: "First Name",
+      placeholder: "",
       classes: {
-        wrapper: "",
-        input: "",
-        error: ""
+        wrapperClass: "a",
+        inputClass: "b",
+        errorClass: "c"
       },
-      isRequired: true,
-      validations: ["req"],
+      validations: [
+        "req",
+        {
+          type: "req",
+          msg: "required field"
+        },
+        value => {
+          if (value !== 1) {
+            return "value is not unity";
+          }
+          return;
+        },
+        {
+          type: "notUnity",
+          validator: value => {
+            if (Number(value) !== 1) {
+              return "value is not unity";
+            }
+            return;
+          }
+        }
+      ],
       onBlur: () => {},
       onFocus: () => {},
       onChange: () => {
@@ -31,13 +55,47 @@ const FORM_CONFIG = {
     lastName: {
       type: "text",
       id: "lastName",
-      name: "lastName",
       label: "Last Name",
       value: "",
+      placeholder: "last name",
       classes: {
-        wrapper: "",
-        input: "",
-        error: ""
+        wrapperClass: "k",
+        inputClass: "l",
+        errorClass: "k"
+      },
+      onBlur: () => {},
+      onFocus: () => {},
+      onChange: () => {}
+    },
+    gender: {
+      type: "select",
+      id: "gender",
+      label: "Gender: ",
+      value: "",
+      classes: {
+        wrapperClass: "k",
+        inputClass: "l",
+        errorClass: "k"
+      },
+      options: [
+        { name: "Male", value: "male" },
+        { name: "Female", value: "female" }
+      ],
+      onBlur: () => {},
+      onFocus: () => {},
+      onChange: () => {}
+    },
+    about: {
+      type: "textarea",
+      id: "about",
+      label: "About you ",
+      value: "",
+      placeholder: "about me",
+      rows: 3,
+      classes: {
+        wrapperClass: "j",
+        inputClass: "k",
+        errorClass: "l"
       },
       onBlur: () => {},
       onFocus: () => {},
@@ -47,11 +105,8 @@ const FORM_CONFIG = {
 };
 
 function LoginForm() {
-  // console.log("main component");
-
   return (
     <div>
-      LoginForm
       <Form config={FORM_CONFIG} />
     </div>
   );

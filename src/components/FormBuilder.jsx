@@ -1,64 +1,97 @@
-import React, { useReducer } from "react";
-import { Input } from "./FormFields";
-
-const INPUT_TYPES = ["text", "email", "password", "number"];
-
-const reducer = (state, action) => {
-  const { value, id } = action.payload;
-  switch (action.type) {
-    case "CHANGE_FIELD_VALUE":
-      return { ...state, values: { ...state.values, [id]: value } };
-    case "CHANGE_FIELD_ERROR":
-      return { ...state, errors: { ...state.errors, [id]: value } };
-  }
-};
+import React, { useCallback, useReducer } from "react";
+import reducer, { changeFieldValue, changeFieldError, changeFieldTouched } from "../formReducer";
+import useEventListener from "../hooks/use_event_listener";
+import { Input, Select, TextArea } from "./FormFields";
+import definedValidations from "../helpers/validators";
+import { INPUT_TYPES } from "../constants/form";
 
 function FormBuilder({ config }) {
   const {
     fields,
-    form: { onSubmit, wrapperClass }
+    onSubmit,
+    wrapperClass,
+    title: { text: heading, class: headingClass },
+    submitBtn: { id: submitBtnId, class: submitBtnClass, content: submitBtnContent }
   } = config;
+
+  const getInitialState = () => {
+    const initialValues = {};
+    Object.values(fields).forEach(({ id, value }) => {
+      initialValues[id] = value;
+    });
+
+    return { values: initialValues, isTouched: {}, errors: {} };
+  };
+
+  const [state, dispatch] = useReducer(reducer, getInitialState());
+
+  const listener = useCallback(
+    e => (e.code === "Enter" || e.code === "NumpadEnter") && document.getElementById(submitBtnId).click(),
+    [dispatch]
+  );
+
+  useEventListener("keydown", listener);
 
   const handleSubmit = e => {
     e.preventDefault();
-    //check for errors and also loader
+
+    Object.keys(state.values).forEach(field => {
+      validateField(field);
+    });
+
     if (!Object.values(state.errors).some(error => !!error)) {
       onSubmit();
     }
   };
 
-  const handleChange = (id, value) => {
-    dispatch({ type: "CHANGE_FIELD_VALUE", payload: { id, value } });
-    validateField(id, value);
-    fields[id].onChange && fields[id].onChange();
-  };
-
-  const validateField = (id, value) => {
-    let error = "";
-    if (fields[id].type === "text") {
-      const { isRequired } = fields[id];
-      if (isRequired && value.length === 0) {
-        error = "Required";
-      }
+  const handleChange = (e, id, value) => {
+    dispatch(changeFieldValue(id, value));
+    if (!state.isTouched[id]) {
+      dispatch(changeFieldTouched(id, true));
+      dispatch(changeFieldError(id, ""));
     }
-    if (error) dispatch({ type: "CHANGE_FIELD_ERROR", payload: { id, value: error } });
+    // validateField(id, value);
+    fields[id].onChange && fields[id].onChange(e);
   };
 
-  const initialValues = {};
-  Object.values(fields).forEach(({ id, value }) => {
-    initialValues[id] = value;
-  });
+  const validateField = id => {
+    const value = state.values[id];
 
-  const initialState = { values: initialValues, isTouched: {}, errors: {} };
+    let error = "";
+    (fields[id].validations || []).forEach(validation => {
+      if (typeof validation == "function") {
+        error = validation(value);
+      } else if (typeof validation == "object") {
+        const { type, validator, msg } = validation;
+        if (Object.keys(definedValidations).includes(type)) {
+          if (definedValidations[type].validator(value)) {
+            if (msg) {
+              error = msg;
+            } else {
+              error = definedValidations[type].msg;
+            }
+          }
+        } else {
+          error = validator(value);
+        }
+      } else if (Object.keys(definedValidations).includes(validation)) {
+        if (definedValidations[validation].validator(value)) {
+          error = definedValidations[validation].msg;
+        }
+      }
+    });
 
-  const [state, dispatch] = useReducer(reducer, initialState);
+    error && dispatch(changeFieldError(id, error));
+    dispatch(changeFieldTouched(id, false));
+  };
 
   const getFieldComponents = () => {
     const formFields = [];
     Object.values(fields).forEach(field => {
+      const { id, type, value, onChange, ...restProps } = field;
+      let Field = "";
       if (INPUT_TYPES.includes(field.type)) {
-        const { id, type, value, onChange, ...restProps } = field;
-        const Field = (
+        Field = (
           <Input
             key={id}
             id={id}
@@ -69,8 +102,34 @@ function FormBuilder({ config }) {
             {...restProps}
           />
         );
-        formFields.push(Field);
       }
+      if (field.type == "textarea") {
+        Field = (
+          <TextArea
+            key={id}
+            id={id}
+            value={state.values[id]}
+            type={type}
+            error={state.errors[id]}
+            onChange={handleChange}
+            {...restProps}
+          />
+        );
+      }
+      if (field.type == "select") {
+        Field = (
+          <Select
+            key={id}
+            id={id}
+            value={state.values[id]}
+            error={state.errors[id]}
+            onChange={handleChange}
+            {...restProps}
+          />
+        );
+      }
+
+      formFields.push(Field);
     });
 
     return formFields;
@@ -79,14 +138,15 @@ function FormBuilder({ config }) {
   return (
     <div className={wrapperClass}>
       <form onSubmit={handleSubmit}>
-        Form
+        <div className={headingClass}>{heading}</div>
         {getFieldComponents().map(field => field)}
-        <button type="submit">submit</button>
+
+        <button id={submitBtnId} className={submitBtnClass} type="submit">
+          {submitBtnContent}
+        </button>
       </form>
     </div>
   );
-
-  // return [Form, state];
 }
 
 export default FormBuilder;
