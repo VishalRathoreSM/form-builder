@@ -28,7 +28,8 @@ const FORM_CONFIG = {
         "req",
         {
           type: "req",
-          msg: "required field"
+          msg: "required field",
+          args: []
         },
         value => {
           if (value !== 1) {

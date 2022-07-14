@@ -5,6 +5,10 @@ import { Input, Select, TextArea } from "./FormFields";
 import definedValidations from "../helpers/validators";
 import { INPUT_TYPES } from "../constants/form";
 
+const definedValidationsArr = Object.keys(definedValidations);
+
+const renderField = field => field;
+
 function FormBuilder({ config }) {
   const {
     fields,
@@ -50,7 +54,6 @@ function FormBuilder({ config }) {
       dispatch(changeFieldTouched(id, true));
       dispatch(changeFieldError(id, ""));
     }
-    // validateField(id, value);
     fields[id].onChange && fields[id].onChange(e);
   };
 
@@ -62,9 +65,11 @@ function FormBuilder({ config }) {
       if (typeof validation == "function") {
         error = validation(value);
       } else if (typeof validation == "object") {
-        const { type, validator, msg } = validation;
-        if (Object.keys(definedValidations).includes(type)) {
-          if (definedValidations[type].validator(value)) {
+        const { type, validator, msg, args = [] } = validation;
+
+        if (definedValidationsArr.includes(type)) {
+          const isValid = definedValidations[type].validator(value, ...args);
+          if (!isValid) {
             if (msg) {
               error = msg;
             } else {
@@ -72,10 +77,11 @@ function FormBuilder({ config }) {
             }
           }
         } else {
-          error = validator(value);
+          error = validator(value, ...args);
         }
-      } else if (Object.keys(definedValidations).includes(validation)) {
-        if (definedValidations[validation].validator(value)) {
+      } else if (definedValidationsArr.includes(validation)) {
+        const isValid = definedValidations[validation].validator(value);
+        if (!isValid) {
           error = definedValidations[validation].msg;
         }
       }
@@ -103,7 +109,7 @@ function FormBuilder({ config }) {
           />
         );
       }
-      if (field.type == "textarea") {
+      if (field.type === "textarea") {
         Field = (
           <TextArea
             key={id}
@@ -116,7 +122,7 @@ function FormBuilder({ config }) {
           />
         );
       }
-      if (field.type == "select") {
+      if (field.type === "select") {
         Field = (
           <Select
             key={id}
@@ -139,7 +145,7 @@ function FormBuilder({ config }) {
     <div className={wrapperClass}>
       <form onSubmit={handleSubmit}>
         <div className={headingClass}>{heading}</div>
-        {getFieldComponents().map(field => field)}
+        {getFieldComponents().map(renderField)}
 
         <button id={submitBtnId} className={submitBtnClass} type="submit">
           {submitBtnContent}
