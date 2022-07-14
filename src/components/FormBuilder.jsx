@@ -1,9 +1,19 @@
-import React, { useCallback, useReducer } from "react";
-import reducer, { changeFieldValue, changeFieldError, changeFieldTouched } from "../formReducer";
+import React, { useCallback, useEffect, useReducer, useState } from "react";
+import reducer, {
+  getInitialState,
+  changeFieldValue,
+  changeFieldError,
+  changeFieldTouched,
+  changeErrors,
+  changeIsTouched,
+  reset
+} from "../reducers/form";
 import useEventListener from "../hooks/use_event_listener";
 import { Input, Select, TextArea } from "./FormFields";
 import definedValidations from "../helpers/validators";
 import { INPUT_TYPES } from "../constants/form";
+
+const defaultArr = [];
 
 const definedValidationsArr = Object.keys(definedValidations);
 
@@ -18,42 +28,52 @@ function FormBuilder({ config }) {
     submitBtn: { id: submitBtnId, class: submitBtnClass, content: submitBtnContent }
   } = config;
 
-  const getInitialState = () => {
-    const initialValues = {};
-    Object.values(fields).forEach(({ id, value }) => {
-      initialValues[id] = value;
-    });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [state, dispatch] = useReducer(reducer, fields, getInitialState);
 
-    return { values: initialValues, isTouched: {}, errors: {} };
-  };
-
-  const [state, dispatch] = useReducer(reducer, getInitialState());
-
-  const listener = useCallback(
-    e => (e.code === "Enter" || e.code === "NumpadEnter") && document.getElementById(submitBtnId).click(),
-    [dispatch]
-  );
+  const listener = useCallback(e => {
+    (e.code === "Enter" || e.code === "NumpadEnter") && document.getElementById(submitBtnId).click();
+  }, defaultArr);
 
   useEventListener("keydown", listener);
+
+  useEffect(() => {
+    if (isSubmitting) {
+      const hasErrors = Object.values(state.errors).some(error => !!error);
+      if (!hasErrors) {
+        onSubmit();
+        dispatch(reset(fields));
+      }
+      setIsSubmitting(false);
+    }
+  }, [isSubmitting]);
 
   const handleSubmit = e => {
     e.preventDefault();
 
+    let errors = {};
+    let isTouched = {};
+
     Object.keys(state.values).forEach(field => {
-      validateField(field);
+      errors[field] = validateField(field);
+      isTouched[field] = false;
     });
 
-    if (!Object.values(state.errors).some(error => !!error)) {
-      onSubmit();
-    }
+    dispatch(changeErrors(errors));
+    dispatch(changeIsTouched(isTouched));
+    setIsSubmitting(true);
   };
 
   const handleChange = (e, id, value) => {
     dispatch(changeFieldValue(id, value));
-    if (!state.isTouched[id]) {
+
+    const isFieldTouched = state.isTouched[id];
+
+    if (!isFieldTouched) {
       dispatch(changeFieldTouched(id, true));
       dispatch(changeFieldError(id, ""));
     }
+
     fields[id].onChange && fields[id].onChange(e);
   };
 
@@ -61,34 +81,37 @@ function FormBuilder({ config }) {
     const value = state.values[id];
 
     let error = "";
-    (fields[id].validations || []).forEach(validation => {
-      if (typeof validation == "function") {
+    (fields[id].validations || defaultArr).forEach(validation => {
+      const typeOfValidation = typeof validation;
+
+      if (typeOfValidation == "function") {
         error = validation(value);
-      } else if (typeof validation == "object") {
-        const { type, validator, msg, args = [] } = validation;
+      } else if (typeOfValidation == "object") {
+        const { type, validator, msg, args = defaultArr } = validation;
 
         if (definedValidationsArr.includes(type)) {
-          const isValid = definedValidations[type].validator(value, ...args);
+          const definedValidation = definedValidations[type];
+          const isValid = definedValidation.validator(value, ...args);
           if (!isValid) {
             if (msg) {
               error = msg;
             } else {
-              error = definedValidations[type].msg;
+              error = definedValidation.msg(...args);
             }
           }
         } else {
           error = validator(value, ...args);
         }
       } else if (definedValidationsArr.includes(validation)) {
-        const isValid = definedValidations[validation].validator(value);
+        const definedValidation = definedValidations[validation];
+        const isValid = definedValidation.validator(value);
         if (!isValid) {
-          error = definedValidations[validation].msg;
+          error = definedValidation.msg();
         }
       }
     });
 
-    error && dispatch(changeFieldError(id, error));
-    dispatch(changeFieldTouched(id, false));
+    return !!error ? error : "";
   };
 
   const getFieldComponents = () => {
@@ -103,13 +126,14 @@ function FormBuilder({ config }) {
             id={id}
             value={state.values[id]}
             type={type}
+            // --Discuss about radio and checkbox inputs--//
+            checked={state.values[id]}
             error={state.errors[id]}
             onChange={handleChange}
             {...restProps}
           />
         );
-      }
-      if (field.type === "textarea") {
+      } else if (field.type === "textarea") {
         Field = (
           <TextArea
             key={id}
@@ -121,8 +145,7 @@ function FormBuilder({ config }) {
             {...restProps}
           />
         );
-      }
-      if (field.type === "select") {
+      } else if (field.type === "select") {
         Field = (
           <Select
             key={id}
@@ -146,7 +169,6 @@ function FormBuilder({ config }) {
       <form onSubmit={handleSubmit}>
         <div className={headingClass}>{heading}</div>
         {getFieldComponents().map(renderField)}
-
         <button id={submitBtnId} className={submitBtnClass} type="submit">
           {submitBtnContent}
         </button>
@@ -155,4 +177,4 @@ function FormBuilder({ config }) {
   );
 }
 
-export default FormBuilder;
+export default React.memo(FormBuilder);

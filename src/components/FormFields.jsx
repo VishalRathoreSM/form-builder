@@ -1,16 +1,27 @@
 import React from "react";
 
+const typeValueMapping = {
+  file: e => e.target.files[0],
+  radio: e => e.target.checked,
+  checkbox: e => e.target.checked,
+  text: e => e.target.value
+};
+
 export const Input = ({
   id,
   value,
   type,
+  name,
   onChange,
   error,
   placeholder = "",
   label,
+  checked,
   classes: { wrapperClass, inputClass, errorClass },
   ...rest
 }) => {
+  const isTypePresentInMapping = !!typeValueMapping[type];
+  const newType = isTypePresentInMapping ? type : "text";
   return (
     <div className={wrapperClass}>
       {label && <label htmlFor={id}>{label}</label>}
@@ -20,7 +31,9 @@ export const Input = ({
         type={type}
         value={value}
         placeholder={placeholder}
-        onChange={e => onChange(e, id, type == "file" ? e.target.files[0] : e.target.value)}
+        name={name}
+        checked={type == "radio" || type == "checkbox" ? checked : undefined}
+        onChange={e => onChange(e, id, typeValueMapping[newType](e))}
         {...rest}
       />
       {error && <div className={errorClass}>{error}</div>}
@@ -48,43 +61,6 @@ export const Select = ({
           </option>
         ))}
       </select>
-      {error && <div className={errorClass}>{error}</div>}
-    </div>
-  );
-};
-
-export const InputRadio = ({ label = "", labelClass = "", name = "", checked = false, value = "", onChange }) => {
-  return (
-    <label className={`tab-radio ${labelClass}`}>
-      <input type="radio" name={name} value={value} onChange={onChange} checked={checked}></input>
-      <span className="tab-radio-value font-bold">{label}</span>
-    </label>
-  );
-};
-
-export const InputCheckbox = ({
-  id,
-  checked = false,
-  value,
-  type,
-  onChange,
-  error,
-  placeholder,
-  classes: { wrapperClass, inputClass, errorClass },
-  label,
-  ...rest
-}) => {
-  return (
-    <div className={wrapperClass}>
-      {label && <label htmlFor={id}>{label}</label>}
-      <input
-        type="checkbox"
-        className={inputClass}
-        checked={checked}
-        onChange={e => onChange(e, id, e.target.checked)}
-        id={id}
-        {...rest}
-      />
       {error && <div className={errorClass}>{error}</div>}
     </div>
   );

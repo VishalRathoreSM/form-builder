@@ -34,23 +34,23 @@ const { isAlpha, isEmail, isEmpty, isEqual, isLength, isMaxLength, isMinLength, 
 
 const definedValidations = {
   req: {
-    msg: "Required",
+    msg: () => "Required",
     validator: isReq
   },
   alpha: {
-    msg: "Should be Alphanumeric",
+    msg: () => "Should be Alphanumeric",
     validator: isAlpha
   },
   email: {
-    msg: "Invalid Email",
+    msg: () => "Invalid Email",
     validator: isEmail
   },
   url: {
-    msg: "Invalid Url",
+    msg: () => "Invalid Url",
     validator: isUrl
   },
   empty: {
-    msg: "Should be Alphanumeric",
+    msg: () => "Should be Alphanumeric",
     validator: isEmpty
   },
   equal: {
@@ -62,7 +62,7 @@ const definedValidations = {
     validator: isMinLength
   },
   maxLen: {
-    msg: value => `can be max ${value} characters long`,
+    msg: value => `Can be max ${value} characters long`,
     validator: isMaxLength
   },
   len: {
@@ -70,7 +70,7 @@ const definedValidations = {
     validator: isLength
   },
   num: {
-    msg: "Should be a number",
+    msg: () => "Should be a number",
     validator: isNumber
   }
 };

@@ -4,6 +4,7 @@ import Form from "./FormBuilder";
 const FORM_CONFIG = {
   onSubmit: () => {
     console.log("submit");
+    alert("hey");
   },
   wrapperClass: "dd",
   title: { text: "Form", class: "ll" },
@@ -30,21 +31,6 @@ const FORM_CONFIG = {
           type: "req",
           msg: "required field",
           args: []
-        },
-        value => {
-          if (value !== 1) {
-            return "value is not unity";
-          }
-          return;
-        },
-        {
-          type: "notUnity",
-          validator: value => {
-            if (Number(value) !== 1) {
-              return "value is not unity";
-            }
-            return;
-          }
         }
       ],
       onBlur: () => {},
@@ -64,14 +50,79 @@ const FORM_CONFIG = {
         inputClass: "l",
         errorClass: "k"
       },
+      validations: [
+        {
+          type: "minLen",
+          args: [3]
+        }
+      ],
       onBlur: () => {},
       onFocus: () => {},
-      onChange: () => {}
+      onChange: () => {
+        console.log("in onChange func");
+      }
     },
-    gender: {
+    email: {
+      type: "email",
+      id: "email",
+      label: "Email",
+      value: "",
+      placeholder: "Enter your email",
+      classes: {
+        wrapperClass: "k",
+        inputClass: "l",
+        errorClass: "k"
+      },
+      validations: [
+        {
+          type: "email",
+          args: []
+        }
+      ],
+      onBlur: () => {},
+      onFocus: () => {},
+      onChange: () => {
+        console.log("in onChange func");
+      }
+    },
+    male: {
+      type: "checkbox",
+      id: "male",
+      label: "Male",
+      name: "gen",
+      value: "male",
+      classes: {
+        wrapperClass: "k",
+        inputClass: "l",
+        errorClass: "k"
+      },
+      onBlur: () => {},
+      onFocus: () => {},
+      onChange: () => {
+        console.log("in onChange func");
+      }
+    },
+    female: {
+      type: "checkbox",
+      id: "female",
+      label: "Female",
+      name: "gen",
+      value: "female",
+      classes: {
+        wrapperClass: "k",
+        inputClass: "l",
+        errorClass: "k"
+      },
+      onBlur: () => {},
+      onFocus: () => {},
+      onChange: () => {
+        console.log("in onChange func");
+      }
+    },
+    maritalStatus: {
       type: "select",
-      id: "gender",
-      label: "Gender: ",
+      id: "maritalStatus",
+      label: "Marital Status ",
       value: "",
       classes: {
         wrapperClass: "k",
@@ -79,8 +130,8 @@ const FORM_CONFIG = {
         errorClass: "k"
       },
       options: [
-        { name: "Male", value: "male" },
-        { name: "Female", value: "female" }
+        { name: "Single", value: "single" },
+        { name: "Married", value: "married" }
       ],
       onBlur: () => {},
       onFocus: () => {},
