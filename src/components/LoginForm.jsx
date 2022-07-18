@@ -7,6 +7,7 @@ const FORM_CONFIG = {
     alert("hey");
   },
   wrapperClass: "dd",
+  id: "contact-form",
   title: { text: "Form", class: "ll" },
   submitBtn: {
     id: "submit-form-btn-id",
@@ -85,12 +86,48 @@ const FORM_CONFIG = {
         console.log("in onChange func");
       }
     },
-    male: {
+    vehicle: {
+      id: "vehicle",
+      name: "vehicle",
+      type: "checkbox-group",
+      value: {},
+      classes: {
+        wrapperClass: "k",
+        errorClass: "k"
+      },
+      onChange: e => {
+        console.log({ target: e.target });
+      },
+      options: [
+        {
+          id: "car",
+          label: "Car",
+          value: "car",
+          classes: {
+            wrapperClass: "k",
+            inputClass: "l",
+            errorClass: "k"
+          }
+        },
+        {
+          id: "bike",
+          label: "Bike",
+          value: "bike",
+          classes: {
+            wrapperClass: "k",
+            inputClass: "l",
+            errorClass: "k"
+          }
+        }
+      ]
+    },
+    subscribe: {
       type: "checkbox",
-      id: "male",
-      label: "Male",
-      name: "gen",
-      value: "male",
+      id: "subscribe",
+      label: "Choose to get updates.",
+      name: "subscribe",
+      value: "subscribe",
+      initialChecked: false,
       classes: {
         wrapperClass: "k",
         inputClass: "l",
@@ -102,27 +139,46 @@ const FORM_CONFIG = {
         console.log("in onChange func");
       }
     },
-    female: {
-      type: "checkbox",
-      id: "female",
-      label: "Female",
-      name: "gen",
-      value: "female",
+    gender: {
+      id: "gender",
+      label: "Select Gender",
+      type: "radio",
+      name: "gender",
+      value: "",
       classes: {
         wrapperClass: "k",
-        inputClass: "l",
         errorClass: "k"
       },
-      onBlur: () => {},
-      onFocus: () => {},
-      onChange: () => {
-        console.log("in onChange func");
-      }
+      onChange: e => {
+        console.log({ target: e.target });
+      },
+      validations: ["req"],
+      options: [
+        {
+          id: "male",
+          label: "Male",
+          value: "male",
+          classes: {
+            wrapperClass: "k",
+            inputClass: "l"
+          }
+        },
+        {
+          id: "female",
+          label: "Female",
+          value: "female",
+          classes: {
+            wrapperClass: "k",
+            inputClass: "l"
+          }
+        }
+      ]
     },
     maritalStatus: {
       type: "select",
       id: "maritalStatus",
       label: "Marital Status ",
+      placeholder: "Select Your Gender",
       value: "",
       classes: {
         wrapperClass: "k",
@@ -130,7 +186,7 @@ const FORM_CONFIG = {
         errorClass: "k"
       },
       options: [
-        { name: "Single", value: "single" },
+        { name: "Single", value: "single", className: "hek" },
         { name: "Married", value: "married" }
       ],
       onBlur: () => {},

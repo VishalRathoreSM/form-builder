@@ -2,7 +2,6 @@ import React from "react";
 
 const typeValueMapping = {
   file: e => e.target.files[0],
-  radio: e => e.target.checked,
   checkbox: e => e.target.checked,
   text: e => e.target.value
 };
@@ -12,10 +11,12 @@ export const Input = ({
   value,
   type,
   name,
-  onChange,
+  groupId,
+  onChange = () => {},
   error,
   placeholder = "",
   label,
+  initialChecked,
   checked,
   classes: { wrapperClass, inputClass, errorClass },
   ...rest
@@ -26,6 +27,7 @@ export const Input = ({
     <div className={wrapperClass}>
       {label && <label htmlFor={id}>{label}</label>}
       <input
+        {...rest}
         id={id}
         className={inputClass}
         type={type}
@@ -33,13 +35,70 @@ export const Input = ({
         placeholder={placeholder}
         name={name}
         checked={type == "radio" || type == "checkbox" ? checked : undefined}
-        onChange={e => onChange(e, id, typeValueMapping[newType](e))}
-        {...rest}
+        onChange={e => onChange(e, groupId || id, typeValueMapping[newType](e))}
       />
       {error && <div className={errorClass}>{error}</div>}
     </div>
   );
 };
+
+export const InputRadioGroup = ({
+  id,
+  name,
+  value,
+  error,
+  classes: { wrapperClass, errorClass },
+  onChange,
+  label = "",
+  options = []
+}) => (
+  <div className={wrapperClass}>
+    <label>{label}</label>
+    {options.map(({ id: optionId, value: optionValue, ...restOptionProps }) => (
+      <Input
+        {...restOptionProps}
+        key={optionId}
+        id={optionId}
+        groupId={id}
+        value={optionValue}
+        name={name}
+        type="radio"
+        checked={value == optionValue}
+        onChange={onChange}
+      />
+    ))}
+    {error && <div className={errorClass}>{error}</div>}
+  </div>
+);
+
+export const CheckboxGroup = ({
+  id,
+  name,
+  value = {},
+  error,
+  classes: { wrapperClass, errorClass },
+  onChange,
+  label = "",
+  options = []
+}) => (
+  <div className={wrapperClass}>
+    <label>{label}</label>
+    {options.map(({ id: optionId, value: optionValue, ...restOptionProps }) => (
+      <Input
+        {...restOptionProps}
+        key={optionId}
+        id={optionId}
+        groupId={id}
+        value={optionValue}
+        name={name}
+        type="checkbox"
+        checked={value[optionId]}
+        onChange={onChange}
+      />
+    ))}
+    {error && <div className={errorClass}>{error}</div>}
+  </div>
+);
 
 export const Select = ({
   id,
@@ -47,24 +106,26 @@ export const Select = ({
   onChange,
   error,
   label,
+  placeholder = "--Select Your Option--",
   options = [],
   classes: { wrapperClass, inputClass, errorClass },
   ...rest
-}) => {
-  return (
-    <div className={wrapperClass}>
-      {label && <label htmlFor={id}>{label}</label>}
-      <select id={id} className={inputClass} onChange={e => onChange(e, id, e.target.value)} value={value} {...rest}>
-        {options.map(({ value, name, ...rest }) => (
-          <option key={value} value={value} {...rest}>
-            {name}
-          </option>
-        ))}
-      </select>
-      {error && <div className={errorClass}>{error}</div>}
-    </div>
-  );
-};
+}) => (
+  <div className={wrapperClass}>
+    {label && <label htmlFor={id}>{label}</label>}
+    <select {...rest} id={id} className={inputClass} onChange={e => onChange(e, id, e.target.value)} value={value}>
+      <option value="" disabled hidden>
+        {placeholder}
+      </option>
+      {options.map(({ value, name, ...rest }) => (
+        <option key={value} value={value} {...rest}>
+          {name}
+        </option>
+      ))}
+    </select>
+    {error && <div className={errorClass}>{error}</div>}
+  </div>
+);
 
 export const TextArea = ({
   id,
@@ -80,6 +141,7 @@ export const TextArea = ({
   <div className={wrapperClass}>
     {label && <label htmlFor={id}>{label}</label>}
     <textarea
+      {...rest}
       id={id}
       type="text"
       className={inputClass}
@@ -88,7 +150,6 @@ export const TextArea = ({
       name={id}
       rows={rows || 2}
       onChange={e => onChange(e, id, e.target.value)}
-      {...rest}
     />
     {error && <div className={errorClass}>{error}</div>}
   </div>

@@ -1,15 +1,6 @@
-import React, { useCallback, useEffect, useReducer, useState } from "react";
-import reducer, {
-  getInitialState,
-  changeFieldValue,
-  changeFieldError,
-  changeFieldTouched,
-  changeErrors,
-  changeIsTouched,
-  reset
-} from "../reducers/form";
-import useEventListener from "../hooks/use_event_listener";
-import { Input, Select, TextArea } from "./FormFields";
+import React, { useEffect, useReducer, useState } from "react";
+import reducer, { getInitialState, updateFieldValue, updateFieldError, setErrors, reset } from "../reducers/form";
+import { CheckboxGroup, Input, InputRadioGroup, Select, TextArea } from "./FormFields";
 import definedValidations from "../helpers/validators";
 import { INPUT_TYPES } from "../constants/form";
 
@@ -24,6 +15,7 @@ function FormBuilder({ config }) {
     fields,
     onSubmit,
     wrapperClass,
+    id: formId,
     title: { text: heading, class: headingClass },
     submitBtn: { id: submitBtnId, class: submitBtnClass, content: submitBtnContent }
   } = config;
@@ -31,17 +23,14 @@ function FormBuilder({ config }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [state, dispatch] = useReducer(reducer, fields, getInitialState);
 
-  const listener = useCallback(e => {
-    (e.code === "Enter" || e.code === "NumpadEnter") && document.getElementById(submitBtnId).click();
-  }, defaultArr);
-
-  useEventListener("keydown", listener);
+  const { values, errors } = state;
 
   useEffect(() => {
     if (isSubmitting) {
-      const hasErrors = Object.values(state.errors).some(error => !!error);
+      const hasErrors = Object.values(errors).some(Boolean);
+
       if (!hasErrors) {
-        onSubmit();
+        onSubmit(values);
         dispatch(reset(fields));
       }
       setIsSubmitting(false);
@@ -52,33 +41,33 @@ function FormBuilder({ config }) {
     e.preventDefault();
 
     let errors = {};
-    let isTouched = {};
 
-    Object.keys(state.values).forEach(field => {
+    Object.keys(values).forEach(field => {
       errors[field] = validateField(field);
-      isTouched[field] = false;
     });
 
-    dispatch(changeErrors(errors));
-    dispatch(changeIsTouched(isTouched));
+    dispatch(setErrors(errors));
     setIsSubmitting(true);
   };
 
   const handleChange = (e, id, value) => {
-    dispatch(changeFieldValue(id, value));
+    dispatch(updateFieldValue(id, value));
 
-    const isFieldTouched = state.isTouched[id];
+    const hasError = !!errors[id];
 
-    if (!isFieldTouched) {
-      dispatch(changeFieldTouched(id, true));
-      dispatch(changeFieldError(id, ""));
-    }
+    hasError && dispatch(updateFieldError(id, ""));
 
-    fields[id].onChange && fields[id].onChange(e);
+    fields[id]?.onChange && fields[id].onChange(e, id, value);
+  };
+
+  const handleCheckboxGroupChange = (e, id, value) => {
+    const prevValue = values[id];
+    const newValue = { ...prevValue, [e.target.id]: value };
+    handleChange(e, id, newValue);
   };
 
   const validateField = id => {
-    const value = state.values[id];
+    const value = values[id];
 
     let error = "";
     (fields[id].validations || defaultArr).forEach(validation => {
@@ -117,44 +106,61 @@ function FormBuilder({ config }) {
   const getFieldComponents = () => {
     const formFields = [];
     Object.values(fields).forEach(field => {
-      const { id, type, value, onChange, ...restProps } = field;
+      const { id, type, value, ...restProps } = field;
+      const fieldValue = values[id];
+      const fieldError = errors[id];
       let Field = "";
-      if (INPUT_TYPES.includes(field.type)) {
+      if (type === "radio") {
+        Field = (
+          <InputRadioGroup
+            {...restProps}
+            key={id}
+            id={id}
+            value={fieldValue}
+            error={fieldError}
+            onChange={handleChange}
+          />
+        );
+      } else if (type === "checkbox-group") {
+        Field = (
+          <CheckboxGroup
+            {...restProps}
+            key={id}
+            id={id}
+            value={fieldValue}
+            error={fieldError}
+            onChange={handleCheckboxGroupChange}
+          />
+        );
+      } else if (INPUT_TYPES.includes(type)) {
+        const isCheckbox = type == "checkbox";
         Field = (
           <Input
+            {...restProps}
             key={id}
             id={id}
-            value={state.values[id]}
+            value={isCheckbox ? value : fieldValue}
             type={type}
-            // --Discuss about radio and checkbox inputs--//
-            checked={state.values[id]}
-            error={state.errors[id]}
+            checked={fieldValue}
+            error={fieldError}
             onChange={handleChange}
-            {...restProps}
           />
         );
-      } else if (field.type === "textarea") {
+      } else if (type === "textarea") {
         Field = (
           <TextArea
+            {...restProps}
             key={id}
             id={id}
-            value={state.values[id]}
+            value={fieldValue}
             type={type}
-            error={state.errors[id]}
+            error={fieldError}
             onChange={handleChange}
-            {...restProps}
           />
         );
-      } else if (field.type === "select") {
+      } else if (type === "select") {
         Field = (
-          <Select
-            key={id}
-            id={id}
-            value={state.values[id]}
-            error={state.errors[id]}
-            onChange={handleChange}
-            {...restProps}
-          />
+          <Select {...restProps} key={id} id={id} value={fieldValue} error={fieldError} onChange={handleChange} />
         );
       }
 
@@ -166,7 +172,7 @@ function FormBuilder({ config }) {
 
   return (
     <div className={wrapperClass}>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} id={formId}>
         <div className={headingClass}>{heading}</div>
         {getFieldComponents().map(renderField)}
         <button id={submitBtnId} className={submitBtnClass} type="submit">
