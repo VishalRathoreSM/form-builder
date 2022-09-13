@@ -18,7 +18,7 @@ const FORM_CONFIG = {
     firstName: {
       type: "text",
       id: "firstName",
-      value: "",
+      initValue: "vishal",
       label: "First Name",
       placeholder: "",
       classes: {
@@ -34,9 +34,9 @@ const FORM_CONFIG = {
           args: []
         }
       ],
-      onBlur: () => {},
-      onFocus: () => {},
-      onChange: () => {
+      onBlur: e => {},
+      onFocus: e => {},
+      onChange: (id, value, e) => {
         console.log("in onChange func");
       }
     },
@@ -44,7 +44,7 @@ const FORM_CONFIG = {
       type: "text",
       id: "lastName",
       label: "Last Name",
-      value: "",
+      initValue: "rathore",
       placeholder: "last name",
       classes: {
         wrapperClass: "k",
@@ -57,9 +57,9 @@ const FORM_CONFIG = {
           args: [3]
         }
       ],
-      onBlur: () => {},
-      onFocus: () => {},
-      onChange: () => {
+      onBlur: e => {},
+      onFocus: e => {},
+      onChange: (id, value, e) => {
         console.log("in onChange func");
       }
     },
@@ -67,7 +67,7 @@ const FORM_CONFIG = {
       type: "email",
       id: "email",
       label: "Email",
-      value: "",
+      initValue: "vishal@gmail.com",
       placeholder: "Enter your email",
       classes: {
         wrapperClass: "k",
@@ -80,29 +80,27 @@ const FORM_CONFIG = {
           args: []
         }
       ],
-      onBlur: () => {},
-      onFocus: () => {},
-      onChange: () => {
+      onBlur: e => {},
+      onFocus: e => {},
+      onChange: (id, value, e) => {
         console.log("in onChange func");
       }
     },
     vehicle: {
       id: "vehicle",
-      name: "vehicle",
       type: "checkbox-group",
-      value: {},
+      initValue: {},
       classes: {
         wrapperClass: "k",
         errorClass: "k"
       },
-      onChange: e => {
+      onChange: (id, value, e) => {
         console.log({ target: e.target });
       },
       options: [
         {
           id: "car",
           label: "Car",
-          value: "car",
           classes: {
             wrapperClass: "k",
             inputClass: "l",
@@ -112,7 +110,6 @@ const FORM_CONFIG = {
         {
           id: "bike",
           label: "Bike",
-          value: "bike",
           classes: {
             wrapperClass: "k",
             inputClass: "l",
@@ -125,17 +122,15 @@ const FORM_CONFIG = {
       type: "checkbox",
       id: "subscribe",
       label: "Choose to get updates.",
-      name: "subscribe",
-      value: "subscribe",
       initialChecked: false,
       classes: {
         wrapperClass: "k",
         inputClass: "l",
         errorClass: "k"
       },
-      onBlur: () => {},
-      onFocus: () => {},
-      onChange: () => {
+      onBlur: e => {},
+      onFocus: e => {},
+      onChange: (id, value, e) => {
         console.log("in onChange func");
       }
     },
@@ -143,13 +138,12 @@ const FORM_CONFIG = {
       id: "gender",
       label: "Select Gender",
       type: "radio",
-      name: "gender",
-      value: "",
+      initValue: "",
       classes: {
         wrapperClass: "k",
         errorClass: "k"
       },
-      onChange: e => {
+      onChange: (id, value, e) => {
         console.log({ target: e.target });
       },
       validations: ["req"],
@@ -157,7 +151,6 @@ const FORM_CONFIG = {
         {
           id: "male",
           label: "Male",
-          value: "male",
           classes: {
             wrapperClass: "k",
             inputClass: "l"
@@ -166,7 +159,6 @@ const FORM_CONFIG = {
         {
           id: "female",
           label: "Female",
-          value: "female",
           classes: {
             wrapperClass: "k",
             inputClass: "l"
@@ -179,7 +171,7 @@ const FORM_CONFIG = {
       id: "maritalStatus",
       label: "Marital Status ",
       placeholder: "Select Your Gender",
-      value: "",
+      initValue: "",
       classes: {
         wrapperClass: "k",
         inputClass: "l",
@@ -189,25 +181,26 @@ const FORM_CONFIG = {
         { name: "Single", value: "single", className: "hek" },
         { name: "Married", value: "married" }
       ],
-      onBlur: () => {},
-      onFocus: () => {},
-      onChange: () => {}
+      onBlur: e => {},
+      onFocus: e => {},
+      onChange: (id, value, e) => {}
     },
     about: {
       type: "textarea",
       id: "about",
       label: "About you ",
-      value: "",
+      initValue: "",
       placeholder: "about me",
       rows: 3,
+      cols: 6,
       classes: {
         wrapperClass: "j",
         inputClass: "k",
         errorClass: "l"
       },
-      onBlur: () => {},
-      onFocus: () => {},
-      onChange: () => {}
+      onBlur: e => {},
+      onFocus: e => {},
+      onChange: (id, value, e) => {}
     }
   }
 };

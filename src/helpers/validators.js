@@ -1,76 +1,78 @@
+const DEFAULT_EMAIL_PATTERN =
+  /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+const DEFAULT_URL_PATTERN =
+  /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g;
+
+const DEFAULT_NUMBER_PATTERN = /\D/;
+
 export const validateHelper = {
   isEmail: value => {
-    const res = value
-      .toString()
-      .match(
-        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-      );
+    const res = value.toString().match(DEFAULT_EMAIL_PATTERN);
     return res !== null;
   },
   isUrl: value => {
-    const res = value
-      .toString()
-      .match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);
+    const res = value.toString().match(DEFAULT_URL_PATTERN);
     return res !== null;
   },
   isNumber: value => {
-    const res = value.toString().match(/\D/);
+    const res = value.toString().match(DEFAULT_NUMBER_PATTERN);
     return res === null;
   },
-  isEmpty: value => value.toString().trim() === "",
-  isLength: (value, len) => !!(value && value.toString().length === len),
-  isMinLength: (value, len) => !!(value && value.toString().length >= len),
-  isMaxLength: (value, len) => !!(value && value.toString().length <= len),
+  isEmpty: value => value == "undefined" || value.toString().trim() === "",
+  hasEqualLength: (value, len) => Boolean(value?.toString().length === len),
+  hasMinLength: (value, len) => Boolean(value?.toString().length >= len),
+  hasMaxLength: (value, len) => Boolean(value?.toString().length <= len),
   isAlpha: value => {
     const res = value.toString().match(/^\W/);
-    return res === null;
+    return res !== null;
   },
-  isReq: value => !!(value !== undefined && value !== null && value !== ""),
+  isReq: value => Boolean(value !== undefined && value !== null && value !== ""),
   isEqual: (value, comparisonValue) => !!value && value === comparisonValue
 };
 
-const { isAlpha, isEmail, isEmpty, isEqual, isLength, isMaxLength, isMinLength, isNumber, isReq, isUrl } =
+const { isAlpha, isEmail, isEmpty, isEqual, hasEqualLength, hasMaxLength, hasMinLength, isNumber, isReq, isUrl } =
   validateHelper;
 
 const definedValidations = {
   req: {
-    msg: () => "Required",
+    getMsg: () => "Required",
     validator: isReq
   },
   alpha: {
-    msg: () => "Should be Alphanumeric",
+    getMsg: () => "Should be Alphanumeric",
     validator: isAlpha
   },
   email: {
-    msg: () => "Invalid Email",
+    getMsg: () => "Invalid Email",
     validator: isEmail
   },
   url: {
-    msg: () => "Invalid Url",
+    getMsg: () => "Invalid Url",
     validator: isUrl
   },
   empty: {
-    msg: () => "Should be Alphanumeric",
+    getMsg: () => "Should be Alphanumeric",
     validator: isEmpty
   },
   equal: {
-    msg: value => `Should be equal to ${value}`,
+    getMsg: value => `Should be equal to ${value}`,
     validator: isEqual
   },
   minLen: {
-    msg: value => `Should be atleast ${value} characters long`,
-    validator: isMinLength
+    getMsg: value => `Should be atleast ${value} characters long`,
+    validator: hasMinLength
   },
   maxLen: {
-    msg: value => `Can be max ${value} characters long`,
-    validator: isMaxLength
+    getMsg: value => `Can be max ${value} characters long`,
+    validator: hasMaxLength
   },
   len: {
-    msg: value => `Should be ${value} characters long`,
-    validator: isLength
+    getMsg: value => `Should be ${value} characters long`,
+    validator: hasEqualLength
   },
   num: {
-    msg: () => "Should be a number",
+    getMsg: () => "Should be a number",
     validator: isNumber
   }
 };

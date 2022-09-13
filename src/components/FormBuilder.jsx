@@ -2,7 +2,10 @@ import React, { useEffect, useReducer, useState } from "react";
 import reducer, { getInitialState, updateFieldValue, updateFieldError, setErrors, reset } from "../reducers/form";
 import { CheckboxGroup, Input, InputRadioGroup, Select, TextArea } from "./FormFields";
 import definedValidations from "../helpers/validators";
-import { INPUT_TYPES } from "../constants/form";
+import { INPUT_TYPES, TYPES } from "../constants/form";
+import { useCallback } from "react";
+
+const { select, checkboxGroup, radio, textarea } = TYPES;
 
 const defaultArr = [];
 
@@ -10,7 +13,7 @@ const definedValidationsArr = Object.keys(definedValidations);
 
 const renderField = field => field;
 
-function FormBuilder({ config }) {
+const FormBuilder = ({ config }) => {
   const {
     fields,
     onSubmit,
@@ -27,13 +30,11 @@ function FormBuilder({ config }) {
 
   useEffect(() => {
     if (isSubmitting) {
-      const hasErrors = Object.values(errors).some(Boolean);
-
-      if (!hasErrors) {
-        onSubmit(values);
+      const callback = () => {
         dispatch(reset(fields));
-      }
-      setIsSubmitting(false);
+        setIsSubmitting(false);
+      };
+      onSubmit(values, callback);
     }
   }, [isSubmitting]);
 
@@ -43,34 +44,41 @@ function FormBuilder({ config }) {
     let errors = {};
 
     Object.keys(values).forEach(field => {
-      errors[field] = validateField(field);
+      let error = validateField(field);
+      if (error) {
+        errors[field] = error;
+      }
     });
 
-    dispatch(setErrors(errors));
+    const hasErrors = Object.keys(errors).length > 0;
+
+    if (hasErrors) {
+      return dispatch(setErrors(errors));
+    }
     setIsSubmitting(true);
   };
 
-  const handleChange = (e, id, value) => {
+  const handleChange = (id, value, e) => {
     dispatch(updateFieldValue(id, value));
 
     const hasError = !!errors[id];
 
     hasError && dispatch(updateFieldError(id, ""));
 
-    fields[id]?.onChange && fields[id].onChange(e, id, value);
+    fields[id]?.onChange && fields[id].onChange(id, value, e);
   };
 
-  const handleCheckboxGroupChange = (e, id, value) => {
+  const handleCheckboxGroupChange = (id, value, e) => {
     const prevValue = values[id];
     const newValue = { ...prevValue, [e.target.id]: value };
-    handleChange(e, id, newValue);
+    handleChange(id, newValue, e);
   };
 
   const validateField = id => {
     const value = values[id];
 
     let error = "";
-    (fields[id].validations || defaultArr).forEach(validation => {
+    (fields[id]?.validations || defaultArr).forEach(validation => {
       const typeOfValidation = typeof validation;
 
       if (typeOfValidation == "function") {
@@ -85,7 +93,7 @@ function FormBuilder({ config }) {
             if (msg) {
               error = msg;
             } else {
-              error = definedValidation.msg(...args);
+              error = definedValidation.getMsg(...args);
             }
           }
         } else {
@@ -95,7 +103,7 @@ function FormBuilder({ config }) {
         const definedValidation = definedValidations[validation];
         const isValid = definedValidation.validator(value);
         if (!isValid) {
-          error = definedValidation.msg();
+          error = definedValidation.getMsg();
         }
       }
     });
@@ -103,14 +111,13 @@ function FormBuilder({ config }) {
     return !!error ? error : "";
   };
 
-  const getFieldComponents = () => {
-    const formFields = [];
-    Object.values(fields).forEach(field => {
-      const { id, type, value, ...restProps } = field;
+  const getFieldComponents = useCallback(() => {
+    return Object.values(fields).map(field => {
+      const { id, type, initValue, getComp, ...restProps } = field;
       const fieldValue = values[id];
       const fieldError = errors[id];
       let Field = "";
-      if (type === "radio") {
+      if (type === radio) {
         Field = (
           <InputRadioGroup
             {...restProps}
@@ -121,7 +128,7 @@ function FormBuilder({ config }) {
             onChange={handleChange}
           />
         );
-      } else if (type === "checkbox-group") {
+      } else if (type === checkboxGroup) {
         Field = (
           <CheckboxGroup
             {...restProps}
@@ -133,20 +140,19 @@ function FormBuilder({ config }) {
           />
         );
       } else if (INPUT_TYPES.includes(type)) {
-        const isCheckbox = type == "checkbox";
         Field = (
           <Input
             {...restProps}
             key={id}
             id={id}
-            value={isCheckbox ? value : fieldValue}
             type={type}
+            value={fieldValue}
             checked={fieldValue}
             error={fieldError}
             onChange={handleChange}
           />
         );
-      } else if (type === "textarea") {
+      } else if (type === textarea) {
         Field = (
           <TextArea
             {...restProps}
@@ -158,17 +164,16 @@ function FormBuilder({ config }) {
             onChange={handleChange}
           />
         );
-      } else if (type === "select") {
+      } else if (type === select) {
         Field = (
           <Select {...restProps} key={id} id={id} value={fieldValue} error={fieldError} onChange={handleChange} />
         );
+      } else if (getComp) {
+        Field = getComp();
       }
-
-      formFields.push(Field);
+      return Field;
     });
-
-    return formFields;
-  };
+  }, [values, errors]);
 
   return (
     <div className={wrapperClass}>
@@ -181,6 +186,6 @@ function FormBuilder({ config }) {
       </form>
     </div>
   );
-}
+};
 
 export default React.memo(FormBuilder);

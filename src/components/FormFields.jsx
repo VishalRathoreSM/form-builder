@@ -1,7 +1,11 @@
-import React from "react";
+import React, { useCallback } from "react";
+
+const defaultArr = [];
+const defaultObj = {};
+const defaultFunc = () => {};
 
 const typeValueMapping = {
-  file: e => e.target.files[0],
+  file: e => e.target.files,
   checkbox: e => e.target.checked,
   text: e => e.target.value
 };
@@ -10,19 +14,19 @@ export const Input = ({
   id,
   value,
   type,
-  name,
   groupId,
-  onChange = () => {},
+  onChange = defaultFunc,
   error,
   placeholder = "",
   label,
   initialChecked,
   checked,
-  classes: { wrapperClass, inputClass, errorClass },
+  classes: { wrapperClass, inputClass, errorClass } = defaultObj,
   ...rest
 }) => {
   const isTypePresentInMapping = !!typeValueMapping[type];
   const newType = isTypePresentInMapping ? type : "text";
+
   return (
     <div className={wrapperClass}>
       {label && <label htmlFor={id}>{label}</label>}
@@ -33,9 +37,9 @@ export const Input = ({
         type={type}
         value={value}
         placeholder={placeholder}
-        name={name}
-        checked={type == "radio" || type == "checkbox" ? checked : undefined}
-        onChange={e => onChange(e, groupId || id, typeValueMapping[newType](e))}
+        name={id}
+        checked={checked}
+        onChange={e => onChange(groupId || id, typeValueMapping[newType](e), e)}
       />
       {error && <div className={errorClass}>{error}</div>}
     </div>
@@ -44,26 +48,25 @@ export const Input = ({
 
 export const InputRadioGroup = ({
   id,
-  name,
   value,
   error,
-  classes: { wrapperClass, errorClass },
+  classes: { wrapperClass, errorClass } = defaultObj,
   onChange,
   label = "",
-  options = []
+  options = defaultArr
 }) => (
   <div className={wrapperClass}>
     <label>{label}</label>
-    {options.map(({ id: optionId, value: optionValue, ...restOptionProps }) => (
+    {options.map(({ id: optionId, ...restOptionProps }) => (
       <Input
         {...restOptionProps}
         key={optionId}
         id={optionId}
         groupId={id}
-        value={optionValue}
-        name={name}
+        value={optionId}
+        name={id}
         type="radio"
-        checked={value == optionValue}
+        checked={value == optionId}
         onChange={onChange}
       />
     ))}
@@ -73,24 +76,23 @@ export const InputRadioGroup = ({
 
 export const CheckboxGroup = ({
   id,
-  name,
-  value = {},
+  value = defaultObj,
   error,
-  classes: { wrapperClass, errorClass },
+  classes: { wrapperClass, errorClass } = defaultObj,
   onChange,
   label = "",
-  options = []
+  options = defaultArr
 }) => (
   <div className={wrapperClass}>
     <label>{label}</label>
-    {options.map(({ id: optionId, value: optionValue, ...restOptionProps }) => (
+    {options.map(({ id: optionId, ...restOptionProps }) => (
       <Input
         {...restOptionProps}
         key={optionId}
         id={optionId}
         groupId={id}
-        value={optionValue}
-        name={name}
+        value={optionId}
+        name={id}
         type="checkbox"
         checked={value[optionId]}
         onChange={onChange}
@@ -107,14 +109,14 @@ export const Select = ({
   error,
   label,
   placeholder = "--Select Your Option--",
-  options = [],
-  classes: { wrapperClass, inputClass, errorClass },
+  options = defaultArr,
+  classes: { wrapperClass, inputClass, errorClass } = defaultObj,
   ...rest
 }) => (
   <div className={wrapperClass}>
     {label && <label htmlFor={id}>{label}</label>}
-    <select {...rest} id={id} className={inputClass} onChange={e => onChange(e, id, e.target.value)} value={value}>
-      <option value="" disabled hidden>
+    <select {...rest} id={id} className={inputClass} onChange={e => onChange(id, e.target.value, e)} value={value}>
+      <option key="default" value="" disabled hidden>
         {placeholder}
       </option>
       {options.map(({ value, name, ...rest }) => (
@@ -135,22 +137,24 @@ export const TextArea = ({
   onChange,
   error,
   rows,
-  classes: { wrapperClass, inputClass, errorClass },
+  classes: { wrapperClass, inputClass, errorClass } = defaultObj,
   ...rest
-}) => (
-  <div className={wrapperClass}>
-    {label && <label htmlFor={id}>{label}</label>}
-    <textarea
-      {...rest}
-      id={id}
-      type="text"
-      className={inputClass}
-      placeholder={placeholder}
-      value={value}
-      name={id}
-      rows={rows || 2}
-      onChange={e => onChange(e, id, e.target.value)}
-    />
-    {error && <div className={errorClass}>{error}</div>}
-  </div>
-);
+}) => {
+  const noOfRows = rows || 2;
+  return (
+    <div className={wrapperClass}>
+      {label && <label htmlFor={id}>{label}</label>}
+      <textarea
+        {...rest}
+        id={id}
+        className={inputClass}
+        placeholder={placeholder}
+        value={value}
+        name={id}
+        rows={noOfRows}
+        onChange={e => onChange(id, e.target.value, e)}
+      />
+      {error && <div className={errorClass}>{error}</div>}
+    </div>
+  );
+};

@@ -3,17 +3,22 @@ const UPDATE_FIELD_ERROR = "UPDATE_FIELD_ERROR";
 const SET_ERRORS = "SET_ERRORS";
 const RESET = "RESET";
 
-export const getInitialState = fields => {
-  const initialValues = {};
-  Object.values(fields).forEach(({ id, value = "", initialChecked }) => {
-    initialValues[id] = initialChecked ?? value;
-  });
+const defaultObj = {};
 
-  return { values: initialValues, errors: {} };
+export const getInitialState = fields => {
+  return Object.values(fields).reduce(
+    (res, { id, initValue = "", initialChecked, getComp }) => {
+      if (!getComp) {
+        res.values[id] = initialChecked ?? initValue;
+      }
+      return res;
+    },
+    { values: {}, errors: {} }
+  );
 };
 
 const reducer = (state, { type, payload }) => {
-  const { value, id } = payload || {};
+  const { value, id } = payload || defaultObj;
   switch (type) {
     case UPDATE_FIELD_VALUE:
       return { ...state, values: { ...state.values, [id]: value } };
