@@ -112,22 +112,27 @@ export const Select = ({
   options = defaultArr,
   classes: { wrapperClass, inputClass, errorClass } = defaultObj,
   ...rest
-}) => (
-  <div className={wrapperClass}>
-    {label && <label htmlFor={id}>{label}</label>}
-    <select {...rest} id={id} className={inputClass} onChange={e => onChange(id, e.target.value, e)} value={value}>
-      <option key="default" value="" disabled hidden>
-        {placeholder}
-      </option>
-      {options.map(({ value, name, ...rest }) => (
-        <option key={value} value={value} {...rest}>
-          {name}
+}) => {
+  const handleChange = e => {
+    onChange(id, e.target.value, e);
+  };
+  return (
+    <div className={wrapperClass}>
+      {label && <label htmlFor={id}>{label}</label>}
+      <select {...rest} id={id} className={inputClass} onChange={handleChange} value={value}>
+        <option key="default" value="" disabled hidden>
+          {placeholder}
         </option>
-      ))}
-    </select>
-    {error && <div className={errorClass}>{error}</div>}
-  </div>
-);
+        {options.map(({ value, name, ...rest }) => (
+          <option key={value} value={value} {...rest}>
+            {name}
+          </option>
+        ))}
+      </select>
+      {error && <div className={errorClass}>{error}</div>}
+    </div>
+  );
+};
 
 export const TextArea = ({
   id,
@@ -140,7 +145,12 @@ export const TextArea = ({
   classes: { wrapperClass, inputClass, errorClass } = defaultObj,
   ...rest
 }) => {
+  const handleChange = e => {
+    onChange(id, e.target.value, e);
+  };
+
   const noOfRows = rows || 2;
+
   return (
     <div className={wrapperClass}>
       {label && <label htmlFor={id}>{label}</label>}
@@ -152,7 +162,7 @@ export const TextArea = ({
         value={value}
         name={id}
         rows={noOfRows}
-        onChange={e => onChange(id, e.target.value, e)}
+        onChange={handleChange}
       />
       {error && <div className={errorClass}>{error}</div>}
     </div>

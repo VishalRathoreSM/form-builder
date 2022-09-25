@@ -5,8 +5,8 @@ const RESET = "RESET";
 
 const defaultObj = {};
 
-export const getInitialState = fields => {
-  return Object.values(fields).reduce(
+export const getInitialState = fields =>
+  Object.values(fields).reduce(
     (res, { id, initValue = "", initialChecked, getComp }) => {
       if (!getComp) {
         res.values[id] = initialChecked ?? initValue;
@@ -15,7 +15,6 @@ export const getInitialState = fields => {
     },
     { values: {}, errors: {} }
   );
-};
 
 const reducer = (state, { type, payload }) => {
   const { value, id } = payload || defaultObj;

@@ -180,7 +180,7 @@ const FormBuilder = ({ config }) => {
       <form onSubmit={handleSubmit} id={formId}>
         <div className={headingClass}>{heading}</div>
         {getFieldComponents().map(renderField)}
-        <button id={submitBtnId} className={submitBtnClass} type="submit">
+        <button id={submitBtnId} disabled={isSubmitting} className={submitBtnClass} type="submit">
           {submitBtnContent}
         </button>
       </form>

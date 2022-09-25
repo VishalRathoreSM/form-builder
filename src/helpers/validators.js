@@ -4,35 +4,36 @@ const DEFAULT_EMAIL_PATTERN =
 const DEFAULT_URL_PATTERN =
   /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g;
 
-const DEFAULT_NUMBER_PATTERN = /\D/;
+const NON_ALPHA_NUMERIC_PATTERN = /\W/;
 
 export const validateHelper = {
-  isEmail: value => {
-    const res = value.toString().match(DEFAULT_EMAIL_PATTERN);
-    return res !== null;
-  },
-  isUrl: value => {
-    const res = value.toString().match(DEFAULT_URL_PATTERN);
-    return res !== null;
-  },
-  isNumber: value => {
-    const res = value.toString().match(DEFAULT_NUMBER_PATTERN);
-    return res === null;
-  },
-  isEmpty: value => value == "undefined" || value.toString().trim() === "",
+  isEmail: value => Boolean(value?.toString().match(DEFAULT_EMAIL_PATTERN)),
+  isUrl: value => Boolean(value?.toString().match(DEFAULT_URL_PATTERN)),
+  isNumber: value => !isNaN(Number(value)),
+  isEmpty: value => typeof value == "undefined" || value?.toString().trim() === "",
   hasEqualLength: (value, len) => Boolean(value?.toString().length === len),
   hasMinLength: (value, len) => Boolean(value?.toString().length >= len),
   hasMaxLength: (value, len) => Boolean(value?.toString().length <= len),
-  isAlpha: value => {
-    const res = value.toString().match(/^\W/);
-    return res !== null;
+  isAlphaNumeric: value => {
+    const res = value?.toString().match(NON_ALPHA_NUMERIC_PATTERN);
+    return typeof res !== "undefined" && res == null;
   },
   isReq: value => Boolean(value !== undefined && value !== null && value !== ""),
   isEqual: (value, comparisonValue) => !!value && value === comparisonValue
 };
 
-const { isAlpha, isEmail, isEmpty, isEqual, hasEqualLength, hasMaxLength, hasMinLength, isNumber, isReq, isUrl } =
-  validateHelper;
+const {
+  isAlphaNumeric,
+  isEmail,
+  isEmpty,
+  isEqual,
+  hasEqualLength,
+  hasMaxLength,
+  hasMinLength,
+  isNumber,
+  isReq,
+  isUrl
+} = validateHelper;
 
 const definedValidations = {
   req: {
@@ -41,7 +42,7 @@ const definedValidations = {
   },
   alpha: {
     getMsg: () => "Should be Alphanumeric",
-    validator: isAlpha
+    validator: isAlphaNumeric
   },
   email: {
     getMsg: () => "Invalid Email",

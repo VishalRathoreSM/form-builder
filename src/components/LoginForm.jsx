@@ -2,9 +2,10 @@ import React from "react";
 import Form from "./FormBuilder";
 
 const FORM_CONFIG = {
-  onSubmit: () => {
+  onSubmit: (values, callback) => {
     console.log("submit");
-    alert("hey");
+    callback();
+    //--do something with values and then use callback--//
   },
   wrapperClass: "dd",
   id: "contact-form",
@@ -18,6 +19,31 @@ const FORM_CONFIG = {
     firstName: {
       type: "text",
       id: "firstName",
+      initValue: "vishal",
+      label: "First Name",
+      placeholder: "",
+      classes: {
+        wrapperClass: "a",
+        inputClass: "b",
+        errorClass: "c"
+      },
+      validations: [
+        "req",
+        {
+          type: "req",
+          msg: "required field",
+          args: []
+        }
+      ],
+      onBlur: e => {},
+      onFocus: e => {},
+      onChange: (id, value, e) => {
+        console.log("in onChange func");
+      }
+    },
+    ll: {
+      type: "date",
+      id: "ll",
       initValue: "vishal",
       label: "First Name",
       placeholder: "",
@@ -154,7 +180,8 @@ const FORM_CONFIG = {
           classes: {
             wrapperClass: "k",
             inputClass: "l"
-          }
+          },
+          style: { backgroundColor: "red", height: "50px" }
         },
         {
           id: "female",
